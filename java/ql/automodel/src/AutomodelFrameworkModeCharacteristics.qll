@@ -211,7 +211,8 @@ module FrameworkCandidatesImpl implements SharedCharacteristics::CandidateSig {
   predicate isSink(Endpoint e, string kind, string provenance) {
     exists(string package, string type, string name, string signature, string ext, string input |
       sinkSpec(e, package, type, name, signature, ext, input) and
-      ExternalFlow::sinkModel(package, type, _, name, [signature, ""], ext, input, kind, provenance)
+      ExternalFlow::sinkModel(package, type, _, name, [signature, ""], ext, input, kind, provenance,
+        _)
     )
   }
 
@@ -219,7 +220,7 @@ module FrameworkCandidatesImpl implements SharedCharacteristics::CandidateSig {
     exists(string package, string type, string name, string signature, string ext, string output |
       sourceSpec(e, package, type, name, signature, ext, output) and
       ExternalFlow::sourceModel(package, type, _, name, [signature, ""], ext, output, kind,
-        provenance)
+        provenance, _)
     )
   }
 

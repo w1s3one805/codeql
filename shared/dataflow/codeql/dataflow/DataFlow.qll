@@ -171,7 +171,7 @@ signature module InputSig {
 
   predicate parameterMatch(ParameterPosition ppos, ArgumentPosition apos);
 
-  predicate simpleLocalFlowStep(Node node1, Node node2);
+  predicate simpleLocalFlowStep(Node node1, Node node2, string model);
 
   /**
    * Holds if the data-flow step from `node1` to `node2` can be used to
@@ -251,6 +251,10 @@ signature module InputSig {
 
   /** Extra data-flow steps needed for lambda flow analysis. */
   predicate additionalLambdaFlowStep(Node nodeFrom, Node nodeTo, boolean preservesValue);
+
+  predicate knownSourceModel(Node sink, string model);
+
+  predicate knownSinkModel(Node sink, string model);
 
   /**
    * Holds if `n` should never be skipped over in the `PathGraph` and in path
@@ -537,6 +541,10 @@ module DataFlowMake<InputSig Lang> {
     private module C implements FullStateConfigSig {
       import DefaultState<Config>
       import Config
+
+      predicate isAdditionalFlowStep(Node node1, Node node2, string model) {
+        Config::isAdditionalFlowStep(node1, node2) and model = ""
+      }
     }
 
     import Impl<C>
@@ -553,6 +561,10 @@ module DataFlowMake<InputSig Lang> {
   module GlobalWithState<StateConfigSig Config> implements GlobalFlowSig {
     private module C implements FullStateConfigSig {
       import Config
+
+      predicate isAdditionalFlowStep(Node node1, Node node2, string model) {
+        Config::isAdditionalFlowStep(node1, node2) and model = ""
+      }
     }
 
     import Impl<C>
