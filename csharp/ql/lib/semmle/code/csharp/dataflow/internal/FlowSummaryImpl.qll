@@ -160,20 +160,22 @@ module SourceSinkInterpretationInput implements
 
   class Element = Cs::Element;
 
-  predicate sourceElement(Element e, string output, string kind) {
+  predicate sourceElement(Element e, string output, string kind, string model) {
     exists(
       string namespace, string type, boolean subtypes, string name, string signature, string ext
     |
       sourceModel(namespace, type, subtypes, name, signature, ext, output, kind, _) and
+      model = "" and // TODO: Insert MaD provenance from sourceModel
       e = interpretElement(namespace, type, subtypes, name, signature, ext)
     )
   }
 
-  predicate sinkElement(Element e, string input, string kind) {
+  predicate sinkElement(Element e, string input, string kind, string model) {
     exists(
       string namespace, string type, boolean subtypes, string name, string signature, string ext
     |
       sinkModel(namespace, type, subtypes, name, signature, ext, input, kind, _) and
+      model = "" and // TODO: Insert MaD provenance from sinkModel
       e = interpretElement(namespace, type, subtypes, name, signature, ext)
     )
   }
@@ -384,9 +386,9 @@ private class RecordConstructorFlow extends Impl::Private::SummarizedCallableImp
 
   override predicate propagatesFlow(
     Impl::Private::SummaryComponentStack input, Impl::Private::SummaryComponentStack output,
-    boolean preservesValue
+    boolean preservesValue, string model
   ) {
-    this.propagatesFlowImpl(input, output, preservesValue)
+    this.propagatesFlowImpl(input, output, preservesValue) and model = ""
   }
 
   override predicate hasProvenance(Public::Provenance provenance) { provenance = "manual" }
@@ -395,7 +397,11 @@ private class RecordConstructorFlow extends Impl::Private::SummarizedCallableImp
 // see `SummarizedCallableImpl` qldoc
 private class RecordConstructorFlowAdapter extends Impl::Public::SummarizedCallable instanceof RecordConstructorFlow
 {
-  override predicate propagatesFlow(string input, string output, boolean preservesValue) { none() }
+  override predicate propagatesFlow(
+    string input, string output, boolean preservesValue, string model
+  ) {
+    none()
+  }
 
   override predicate hasProvenance(Public::Provenance provenance) {
     RecordConstructorFlow.super.hasProvenance(provenance)
@@ -428,10 +434,13 @@ private class SummarizedCallableWithCallback extends Public::SummarizedCallable 
 
   SummarizedCallableWithCallback() { mayInvokeCallback(this, pos) }
 
-  override predicate propagatesFlow(string input, string output, boolean preservesValue) {
+  override predicate propagatesFlow(
+    string input, string output, boolean preservesValue, string model
+  ) {
     input = "Argument[" + pos + "]" and
     output = "Argument[" + pos + "].Parameter[delegate-self]" and
-    preservesValue = true
+    preservesValue = true and
+    model = "heuristic-callback"
   }
 
   override predicate hasProvenance(Public::Provenance provenance) { provenance = "hq-generated" }
