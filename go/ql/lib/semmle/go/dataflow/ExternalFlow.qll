@@ -299,8 +299,8 @@ predicate hasExternalSpecification(Function f) {
   f = any(SummarizedCallable sc).asFunction()
   or
   exists(SourceSinkInterpretationInput::SourceOrSinkElement e | f = e.asEntity() |
-    SourceSinkInterpretationInput::sourceElement(e, _, _) or
-    SourceSinkInterpretationInput::sinkElement(e, _, _)
+    SourceSinkInterpretationInput::sourceElement(e, _, _, _) or
+    SourceSinkInterpretationInput::sinkElement(e, _, _, _)
   )
 }
 
@@ -353,9 +353,9 @@ private module Cached {
    * model.
    */
   cached
-  predicate sourceNode(DataFlow::Node node, string kind) {
+  predicate sourceNode(DataFlow::Node node, string kind, string model) {
     exists(SourceSinkInterpretationInput::InterpretNode n |
-      isSourceNode(n, kind) and n.asNode() = node
+      isSourceNode(n, kind, model) and n.asNode() = node
     )
   }
 
@@ -364,57 +364,76 @@ private module Cached {
    * model.
    */
   cached
-  predicate sinkNode(DataFlow::Node node, string kind) {
+  predicate sinkNode(DataFlow::Node node, string kind, string model) {
     exists(SourceSinkInterpretationInput::InterpretNode n |
-      isSinkNode(n, kind) and n.asNode() = node
+      isSinkNode(n, kind, model) and n.asNode() = node
     )
   }
 }
 
 import Cached
 
+/**
+ * Holds if `node` is specified as a source with the given kind in a MaD flow
+ * model.
+ */
+predicate sourceNode(DataFlow::Node node, string kind) { sourceNode(node, kind, _) }
+
+/**
+ * Holds if `node` is specified as a sink with the given kind in a MaD flow
+ * model.
+ */
+predicate sinkNode(DataFlow::Node node, string kind) { sinkNode(node, kind, _) }
+
 private predicate interpretSummary(
-  Callable c, string input, string output, string kind, string provenance
+  Callable c, string input, string output, string kind, string provenance, string model
 ) {
   exists(
     string namespace, string type, boolean subtypes, string name, string signature, string ext
   |
     summaryModel(namespace, type, subtypes, name, signature, ext, input, output, kind, provenance) and
+    model = "" and // TODO: Insert MaD provenance from summaryModel
     c.asFunction() = interpretElement(namespace, type, subtypes, name, signature, ext).asEntity()
   )
 }
 
 // adapter class for converting Mad summaries to `SummarizedCallable`s
 private class SummarizedCallableAdapter extends SummarizedCallable {
-  SummarizedCallableAdapter() { interpretSummary(this, _, _, _, _) }
+  SummarizedCallableAdapter() { interpretSummary(this, _, _, _, _, _) }
 
-  private predicate relevantSummaryElementManual(string input, string output, string kind) {
+  private predicate relevantSummaryElementManual(
+    string input, string output, string kind, string model
+  ) {
     exists(Provenance provenance |
-      interpretSummary(this, input, output, kind, provenance) and
+      interpretSummary(this, input, output, kind, provenance, model) and
       provenance.isManual()
     )
   }
 
-  private predicate relevantSummaryElementGenerated(string input, string output, string kind) {
+  private predicate relevantSummaryElementGenerated(
+    string input, string output, string kind, string model
+  ) {
     exists(Provenance provenance |
-      interpretSummary(this, input, output, kind, provenance) and
+      interpretSummary(this, input, output, kind, provenance, model) and
       provenance.isGenerated()
     )
   }
 
-  override predicate propagatesFlow(string input, string output, boolean preservesValue) {
+  override predicate propagatesFlow(
+    string input, string output, boolean preservesValue, string model
+  ) {
     exists(string kind |
-      this.relevantSummaryElementManual(input, output, kind)
+      this.relevantSummaryElementManual(input, output, kind, model)
       or
-      not this.relevantSummaryElementManual(_, _, _) and
-      this.relevantSummaryElementGenerated(input, output, kind)
+      not this.relevantSummaryElementManual(_, _, _, _) and
+      this.relevantSummaryElementGenerated(input, output, kind, model)
     |
       if kind = "value" then preservesValue = true else preservesValue = false
     )
   }
 
   override predicate hasProvenance(Provenance provenance) {
-    interpretSummary(this, _, _, _, provenance)
+    interpretSummary(this, _, _, _, provenance, _)
   }
 }
 
