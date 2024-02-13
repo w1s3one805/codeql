@@ -1084,9 +1084,12 @@ module MakeImpl<InputSig Lang> {
     pragma[nomagic]
     private int branch(NodeEx n1) {
       result =
-        strictcount(NodeEx n |
-            flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n)
+        strictcount(DataFlowCallable c | exists(NodeEx n |
+            flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n) | c = n.getEnclosingCallable())
           ) + sum(ParamNodeEx p1 | | getLanguageSpecificFlowIntoCallNodeCand1(n1, p1))
+        // strictcount(NodeEx n |
+        //     flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n)
+        //   ) + sum(ParamNodeEx p1 | | getLanguageSpecificFlowIntoCallNodeCand1(n1, p1))
     }
 
     /**
@@ -1097,9 +1100,12 @@ module MakeImpl<InputSig Lang> {
     pragma[nomagic]
     private int join(NodeEx n2) {
       result =
-        strictcount(NodeEx n |
-            flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2)
+        strictcount(DataFlowCallable c | exists(NodeEx n |
+            flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2) | c = n.getEnclosingCallable())
           ) + sum(ArgNodeEx arg2 | | getLanguageSpecificFlowIntoCallNodeCand1(arg2, n2))
+        // strictcount(NodeEx n |
+        //     flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2)
+        //   ) + sum(ArgNodeEx arg2 | | getLanguageSpecificFlowIntoCallNodeCand1(arg2, n2))
     }
 
     /**
@@ -1114,10 +1120,11 @@ module MakeImpl<InputSig Lang> {
       DataFlowCall call, RetNodeEx ret, ReturnKindExt kind, NodeEx out, boolean allowsFieldFlow
     ) {
       flowOutOfCallNodeCand1(call, ret, kind, out) and
-      exists(int b, int j |
-        b = branch(ret) and
+      exists(int j | //b, int j |
+        // b = branch(ret) and
         j = join(out) and
-        if b.minimum(j) <= Config::fieldFlowBranchLimit()
+        // if b.minimum(j) <= Config::fieldFlowBranchLimit()
+        if j <= Config::fieldFlowBranchLimit()
         then allowsFieldFlow = true
         else allowsFieldFlow = false
       )
