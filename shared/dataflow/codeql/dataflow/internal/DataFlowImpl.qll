@@ -1084,12 +1084,16 @@ module MakeImpl<InputSig Lang> {
     pragma[nomagic]
     private int branch(NodeEx n1) {
       result =
-        strictcount(DataFlowCallable c | exists(NodeEx n |
-            flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n) | c = n.getEnclosingCallable())
+        strictcount(DataFlowCallable c |
+            exists(NodeEx n |
+              flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n)
+            |
+              c = n.getEnclosingCallable()
+            )
           ) + sum(ParamNodeEx p1 | | getLanguageSpecificFlowIntoCallNodeCand1(n1, p1))
-        // strictcount(NodeEx n |
-        //     flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n)
-        //   ) + sum(ParamNodeEx p1 | | getLanguageSpecificFlowIntoCallNodeCand1(n1, p1))
+      // strictcount(NodeEx n |
+      //     flowOutOfCallNodeCand1(_, n1, _, n) or flowIntoCallNodeCand1(_, n1, n)
+      //   ) + sum(ParamNodeEx p1 | | getLanguageSpecificFlowIntoCallNodeCand1(n1, p1))
     }
 
     /**
@@ -1100,12 +1104,16 @@ module MakeImpl<InputSig Lang> {
     pragma[nomagic]
     private int join(NodeEx n2) {
       result =
-        strictcount(DataFlowCallable c | exists(NodeEx n |
-            flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2) | c = n.getEnclosingCallable())
+        strictcount(DataFlowCallable c |
+            exists(NodeEx n |
+              flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2)
+            |
+              c = n.getEnclosingCallable()
+            )
           ) + sum(ArgNodeEx arg2 | | getLanguageSpecificFlowIntoCallNodeCand1(arg2, n2))
-        // strictcount(NodeEx n |
-        //     flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2)
-        //   ) + sum(ArgNodeEx arg2 | | getLanguageSpecificFlowIntoCallNodeCand1(arg2, n2))
+      // strictcount(NodeEx n |
+      //     flowOutOfCallNodeCand1(_, n, _, n2) or flowIntoCallNodeCand1(_, n, n2)
+      //   ) + sum(ArgNodeEx arg2 | | getLanguageSpecificFlowIntoCallNodeCand1(arg2, n2))
     }
 
     /**
@@ -1120,7 +1128,9 @@ module MakeImpl<InputSig Lang> {
       DataFlowCall call, RetNodeEx ret, ReturnKindExt kind, NodeEx out, boolean allowsFieldFlow
     ) {
       flowOutOfCallNodeCand1(call, ret, kind, out) and
-      exists(int j | //b, int j |
+      exists(
+        int j //b, int j |
+      |
         // b = branch(ret) and
         j = join(out) and
         // if b.minimum(j) <= Config::fieldFlowBranchLimit()
@@ -2316,6 +2326,8 @@ module MakeImpl<InputSig Lang> {
             RevTypeFlowInput::dataFlowTakenCallEdgeIn(call, c, _)
           )
         }
+
+        additional predicate statsFwdConsCand(Content f0, Typ t, Ap ap) { fwdConsCand(f0, t, ap) }
 
         additional predicate stats(
           boolean fwd, int nodes, int fields, int conscand, int states, int tuples, int calledges,
@@ -4345,6 +4357,10 @@ module MakeImpl<InputSig Lang> {
      *
      * Calculates per-stage metrics for data flow.
      */
+    predicate stage5statsFwdConsCand(Content f0, Stage5::Typ t, Stage5::Ap ap) {
+      Stage5::statsFwdConsCand(f0, t, ap)
+    }
+
     predicate stageStats(
       int n, string stage, int nodes, int fields, int conscand, int states, int tuples,
       int calledges, int tfnodes, int tftuples

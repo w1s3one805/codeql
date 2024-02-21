@@ -15,6 +15,10 @@ import java
 import semmle.code.java.security.SensitiveLoggingQuery
 import SensitiveLoggerFlow::PathGraph
 
+predicate stats = SensitiveLoggerFlow::stageStats/10;
+
+predicate stage5statsFwdConsCand = SensitiveLoggerFlow::stage5statsFwdConsCand/3;
+
 from SensitiveLoggerFlow::PathNode source, SensitiveLoggerFlow::PathNode sink
 where SensitiveLoggerFlow::flowPath(source, sink)
 select sink.getNode(), source, sink, "This $@ is written to a log file.", source.getNode(),
