@@ -39,7 +39,11 @@ module InsecureRandomness {
   predicate isSinkWithKind(Sink sink, string kind) { kind = sink.getKind() }
 
   private module Config implements DataFlow::ConfigSig {
-    predicate isSource(DataFlow::Node source) { source instanceof Source }
+    predicate isSource(DataFlow::Node source) {
+      source instanceof Source and
+      source.getStartLine() = 184 and
+      source.getFile().getBaseName() = "conn.go"
+    }
 
     predicate isSink(DataFlow::Node sink) { isSinkWithKind(sink, _) }
 
