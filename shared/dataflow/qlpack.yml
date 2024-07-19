@@ -6,4 +6,6 @@ dependencies:
   codeql/ssa: ${workspace}
   codeql/typetracking: ${workspace}
   codeql/util: ${workspace}
+dataExtensions:
+  - ext/*.yml
 warnOnImplicitThis: true

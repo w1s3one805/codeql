@@ -15,6 +15,9 @@ module MakeImpl<LocationSig Location, InputSig<Location> Lang> {
   private import DataFlowMake<Location, Lang>
   private import DataFlowImplCommon::MakeImplCommon<Location, Lang>
   private import DataFlowImplCommonPublic
+  private import ExtraDataflowRestrictions
+
+  module ExtraRestrictions = ExtraDataflowRestrictionsImpl<Location>;
 
   /**
    * An input configuration for data flow using flow state. This signature equals
@@ -319,7 +322,8 @@ module MakeImpl<LocationSig Location, InputSig<Location> Lang> {
     private predicate sourceNode(NodeEx node, FlowState state) {
       Config::isSource(node.asNode(), state) and
       not fullBarrier(node) and
-      not stateBarrier(node, state)
+      not stateBarrier(node, state) and
+      ExtraRestrictions::allowSourceLocation(node.getLocation())
     }
 
     pragma[nomagic]
@@ -735,11 +739,13 @@ module MakeImpl<LocationSig Location, InputSig<Location> Lang> {
       additional predicate sinkNode(NodeEx node, FlowState state) {
         fwdFlow(node) and
         fwdFlowState(state) and
-        Config::isSink(node.asNode())
+        Config::isSink(node.asNode()) and
+        ExtraRestrictions::allowSinkLocation(node.getLocation())
         or
         fwdFlow(node) and
         fwdFlowState(state) and
-        sinkNodeWithState(node, state)
+        sinkNodeWithState(node, state) and
+        ExtraRestrictions::allowSinkLocation(node.getLocation())
       }
 
       /**
