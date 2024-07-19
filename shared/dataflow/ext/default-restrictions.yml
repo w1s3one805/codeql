@@ -3,10 +3,10 @@ extensions:
   - addsTo:
       pack: codeql/dataflow
       extensible: restrictDataflowSourcesTo
-    data: [[ "exclude-all", 0 ]]
+    data: []
 
   - addsTo:
       pack: codeql/dataflow
       extensible: restrictDataflowSinksTo
-    data: []
+    data: [[ "exclude-all", 0 ]]
 
